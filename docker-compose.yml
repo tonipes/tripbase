@@ -1,0 +1,48 @@
+version: "2"
+
+services:
+  datalogger:
+    build: ./datalogger
+    restart: always
+    depends_on:
+      - redis
+    volumes:
+      - ./datalogger/datalogger:/app
+    ports:
+      - "9000:9000"
+    # links:
+    #   - redis
+    command: bash -c "gunicorn -c gunicorn_config.py app:app --reload"
+    environment:
+      TRIPBASE_REDIS_URL: redis
+      TRIPBASE_REDIS_PORT: 6379
+      TRIPBASE_REDIS_DB: 0
+
+  redis:
+    build: ./redis
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+
+  journal-build:
+    build: ./journal-build
+    command: pelican --debug --autoreload -s pelicanconf.py -o /output
+    # command: pelican --debug --autoreload -r content -s pelicanconf.py -o /output
+    volumes:
+      - journal-data:/output
+      - ./journal-build/journal:/journal
+
+  journal-web:
+    build: ./journal-web
+    ports:
+      - "80:80"
+    volumes:
+      - journal-data:/www/journal
+
+volumes:
+  redis-data:
+    driver: local
+
+  journal-data:
+    driver: local

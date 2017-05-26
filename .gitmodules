@@ -1,0 +1,9 @@
+[submodule "datalogger"]
+	path = datalogger
+	url = git@gitlab.com:tonipes/tripbase-datalogger.git
+[submodule "compose"]
+	path = compose
+	url = git@gitlab.com:tonipes/tripbase-config.git
+[submodule "journal-build"]
+	path = journal-build
+	url = git@gitlab.com:tonipes/tripbase-journal.git
