@@ -2,16 +2,14 @@ version: "2"
 
 services:
   datalogger:
-    build: ./datalogger
+    image: registry.gitlab.com/tonipes/tripbase-datalogger:latest
     restart: always
     depends_on:
       - redis
-    volumes:
-      - ./datalogger/datalogger:/app
+    # volumes:
+      # - ./datalogger/datalogger:/app
     ports:
       - "9000:9000"
-    # links:
-    #   - redis
     command: bash -c "gunicorn -c gunicorn_config.py app:app --reload"
     environment:
       TRIPBASE_REDIS_URL: redis
@@ -19,26 +17,33 @@ services:
       TRIPBASE_REDIS_DB: 0
 
   redis:
-    build: ./redis
+    image: redis:latest
     volumes:
       - redis-data:/data
     ports:
       - "6379:6379"
 
   journal-build:
-    build: ./journal-build
+    image: registry.gitlab.com/tonipes/tripbase-journal:latest
     command: pelican --debug --autoreload -s pelicanconf.py -o /output
-    # command: pelican --debug --autoreload -r content -s pelicanconf.py -o /output
     volumes:
       - journal-data:/output
-      - ./journal-build/journal:/journal
+      # - ./journal-build/journal:/journal
 
   journal-web:
-    build: ./journal-web
+    image: nginx:latest
     ports:
       - "80:80"
     volumes:
+      - ./compose/nginx.conf:/etc/nginx/nginx.conf
       - journal-data:/www/journal
+
+  redsmin-proxy:
+    image: redsmin/proxy
+    depends_on:
+      - redis
+    environment:
+      REDIS_URI: "redis://redis:6379"
 
 volumes:
   redis-data:
